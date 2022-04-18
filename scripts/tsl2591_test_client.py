@@ -23,31 +23,32 @@ import sys
 import rospy
 
 # Project packages
-from tsl2591.srv import readings
-
-
-def tsl2591_driver_client(status):
-    rospy.wait_for_service('tsl2591/readings_service')
-    try:
-        light_sensor = rospy.ServiceProxy('tsl2591/readings_service', readings)
-        resp1 = light_sensor(status)
-        return resp1.reading1, resp1.reading2, resp1.reading3, resp1.reading4
-    except rospy.ServiceException as e:
-        print("Service call failed: %s" % e)
+from tsl2591.srv import ReadingsService
 
 
 def usage():
-    return "%s [status]" % sys.argv[0]
+    return "Usage: %s " % sys.argv[0]
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        status = int(sys.argv[1])
-    else:
+    if len(sys.argv) != 1:
         print(usage())
         sys.exit(1)
 
-    print("Requesting status:%s" % (status))
-    r1, r2, r3, r4 = tsl2591_driver_client(status)
-    print("Status: %d\nr1: %f\nr2: %f\nr3: %f\nr4: %f\n" % (status, r1, r2, r3, r4))
-    print("---------------------------------------------")
+    rospy.init_node('tsl2591_test_client', anonymous=True)
+
+    rospy.wait_for_service('tsl2591/readings_service')
+    readings_proxy = rospy.ServiceProxy('tsl2591/readings_service',
+                                        ReadingsService)
+    while not rospy.is_shutdown():
+        rospy.loginfo(f"{__name__}: Requesting readings")
+        try:
+
+            resp = readings_proxy()
+        except rospy.ServiceException as e:
+            rospy.logerr(f"{__name__}: Service call failed: {e}")
+
+        for r in resp.readings:
+            rospy.loginfo(f"{__name__}: Got reading:\n{r}")
+
+        rospy.sleep(1.0)

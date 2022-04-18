@@ -18,6 +18,7 @@
 # Core packages
 from __future__ import print_function
 import typing as tp
+import math
 
 # 3rd party packages
 import rospy
@@ -27,7 +28,8 @@ import adafruit_tsl2591
 from std_msgs.msg import Empty
 
 # Project packages
-from tsl2591.srv import readings, readingsResponse, readingsRequest
+from tsl2591.srv import ReadingsService, ReadingsServiceResponse, ReadingsServiceRequest
+from tsl2591.msg import SensorReading
 
 
 class TSL2591ArrayDriver:
@@ -41,15 +43,16 @@ class TSL2591ArrayDriver:
             adafruit_tsl2591.TSL2591(mp_bus[3])
         ]
 
-    def detect_lux(self) -> tp.Array[float]:
+    def detect_lux(self) -> tp.List[float]:
         return [s.lux for s in self.sensors]
 
-    def handle_service_request(self, req: readingsRequest) -> readingsResponse:
-        if req.start == 1:
-            luxes = self.detect_lux()
-            print(f"Status: {req.start}, return {luxes}")
-            print("---------------------------------------------")
+    def handle_service_request(self, req: ReadingsServiceRequest) -> ReadingsServiceResponse:
+        luxes = self.detect_lux()
 
-            return readingsResponse(luxes[0], luxes[1], luxes[2], luxes[3])
-        else:
-            return None
+        # Swap last two readings because of wiring on the turtlebot
+        readings = [SensorReading(luxes[0], 0),
+                    SensorReading(luxes[1], math.pi / 2.0),
+                    SensorReading(luxes[3], math.pi * 3.0 / 2.0),
+                    SensorReading(luxes[2], math.pi)]
+
+        return ReadingsServiceResponse(readings)

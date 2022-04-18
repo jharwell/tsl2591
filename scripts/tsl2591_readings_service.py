@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright 2022 John Harwell, All rights reserved.
 #
 #  This file is part of ROSBRIDGE.
@@ -14,10 +15,21 @@
 #  You should have received a copy of the GNU General Public License along with
 #  ROSBRIDGE.  If not, see <http://www.gnu.org/licenses/
 
-from distutils.core import setup
-from catkin_pkg.python_setup import generate_distutils_setup
-d = generate_distutils_setup(
-    packages=['tsl2591'],
-    package_dir={'': 'src'}
-)
-setup(**d)
+# Core packages
+
+# 3rd party packages
+import rospy
+
+# Project packages
+import tsl2591_driver
+from tsl2591.srv import ReadingsService
+
+
+if __name__ == "__main__":
+    rospy.init_node('tsl2591_readings_service')
+    array = tsl2591_driver.TSL2591ArrayDriver()
+    s = rospy.Service('tsl2591/readings_service',
+                      ReadingsService,
+                      array.handle_service_request)
+    print("Ready to send readings.")
+    rospy.spin()

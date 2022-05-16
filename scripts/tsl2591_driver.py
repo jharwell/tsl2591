@@ -49,10 +49,14 @@ class TSL2591ArrayDriver:
     def handle_service_request(self, req: ReadingsServiceRequest) -> ReadingsServiceResponse:
         luxes = self.detect_lux()
 
-        # Swap last two readings because of wiring on the turtlebot
-        readings = [SensorReading(luxes[0], 0),
-                    SensorReading(luxes[1], math.pi / 2.0),
-                    SensorReading(luxes[3], math.pi * 3.0 / 2.0),
-                    SensorReading(luxes[2], math.pi)]
+        # Sensors are placed on the front and back corners of the turtlebot, so
+        # their angles are pi/2 apart, with the first being at pi/4.
+        #
+        # 2022/05/16: swap last two readings because of wiring on the
+        # turtlebot.
+        readings = [SensorReading(luxes[0], math.pi / 4.0),
+                    SensorReading(luxes[1], 3 * math.pi / 4.0),
+                    SensorReading(luxes[3], 5 * math.pi * 4.0),
+                    SensorReading(luxes[2], 7 * math.pi / 4.0)]
 
         return ReadingsServiceResponse(readings)

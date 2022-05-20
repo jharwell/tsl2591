@@ -26,10 +26,10 @@ from tsl2591.srv import ReadingsService
 
 
 if __name__ == "__main__":
-    rospy.init_node('tsl2591_readings_service')
+    rospy.init_node(__name__)
     array = tsl2591_driver.TSL2591ArrayDriver()
     s = rospy.Service('tsl2591/readings_service',
                       ReadingsService,
                       array.handle_service_request)
-    print("Ready to send readings.")
+    print(f"{__name__}: Ready to send readings")
     rospy.spin()
